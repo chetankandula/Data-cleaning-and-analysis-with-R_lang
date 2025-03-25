@@ -1,0 +1,887 @@
+---
+title: "Assignment_1 - chetan_kandula"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+date: "2025-03-12"
+---
+
+***Loading data set and libraries***
+
+
+```{r}
+# Load required dataset library
+library(datasets)
+
+# Set CRAN repository explicitly before installing packages
+options(repos = c(CRAN = "https://cloud.r-project.org/"))
+
+# Install required packages
+install.packages("mice", dependencies = TRUE)
+install.packages("tinytex", dependencies = TRUE)
+
+# Load the 'mice' library
+library(mice)
+
+# Read the dataset
+dataset_cars <- read.csv("C:\\Users\\Asus\\Downloads\\cars_data_10K.csv")
+
+# Check if TinyTeX is installed; install only if missing
+if (!tinytex::is_tinytex()) {
+  tinytex::install_tinytex(force = TRUE)
+}
+
+# Install ggplot2 if not installed
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  install.packages("ggplot2", dependencies = TRUE)
+}
+
+# Load ggplot2 library
+library(ggplot2)
+
+
+```
+
+***Exploring and knowing the dataset:***
+
+In this part I have explored  and studied whole dataset and columns.
+
+```{r}
+summary(dataset_cars)
+head(dataset_cars)
+colnames(dataset_cars)
+dim(dataset_cars)
+```
+***Cleaning Dataset:***
+
+1.To check the data
+2.Identifying Null[NA] values
+3.Identifying special characters and replacing/removing from the column to convert the data in appropriate data
+4.Handling Outliers.
+
+*Cleaning each and every column step-by-step:*
+
+column-1 : Make
+```{r}
+
+summary(dataset_cars$Make)
+#finding how many times a word got repeated and finding frequency of the words
+frequency(dataset_cars$Make)
+
+#converting all the column names to lowercase:
+dataset_cars$Make <- tolower(dataset_cars$Make)
+#checking null values[NA]:
+sum(is.na(dataset_cars$Make))
+#removing unwanted spaces from this column:
+dataset_cars$Make <- gsub(" ","",dataset_cars$Make)
+
+#now removing all the special characters from the columns:
+#In this columns we are having special character {'-'} -> removing '-' and replacing:
+dataset_cars$Make <-gsub("-","",dataset_cars$Make)
+
+#once again checking for other special characters in data:
+#grepl("[^a-zA-Z ]",dataset_cars$Make)
+
+table(dataset_cars$Make)
+
+```
+*SUMMARY OF COLUMN-1:MAKE*
+
+1.The above column(Make) is entirely cleaned and preprocessed.
+2.I have also removed all the special charactes and unwanted spaces in the column.
+3.chevrolet made more no.of cars = 937
+
+
+Column-2:Model
+
+```{r}
+#Summary of the column:
+summary(dataset_cars$Model)
+#checking null characters:
+sum(is.na(dataset_cars$Model))
+#frequency:
+frequency(dataset_cars$Model)
+#Converting to lowercase:
+dataset_cars$Model <- tolower(dataset_cars$Model)
+
+#so here we can see that there are special characters like ['-' , '/' , '.', "space"]:
+#removing Special characters and converting the data into appropriate format:
+dataset_cars$Model <- gsub(" ","",dataset_cars$Model)
+dataset_cars$Model <- gsub("-","",dataset_cars$Model)
+dataset_cars$Model <- gsub("/","",dataset_cars$Model)
+dataset_cars$Model <- gsub("\\.","",dataset_cars$Model)
+
+
+```
+*Summary of column-2: Model*
+
+1.The data is cleaned and preprocessed properly
+2.In this column I found Special characters[-,/,.].
+3.So i removed all the special characters and unwanted spaces and made the data 
+  ready.
+
+
+Column-3 : YEAR
+
+```{R}
+summary(dataset_cars$Year)
+#validating data:
+is.numeric(dataset_cars$Year)
+#checking null values:
+sum(is.na(dataset_cars$year))
+#checking for any special characters in YEAR column:
+specialchars3 <- gsub("[0-9 ]","",dataset_cars$Year)
+cat(specialchars3)
+#outliers
+IQR_0 <- 2016 - 2007
+LB_0 <- 2007 - 1.5 * IQR_0
+UB_0 <- 2016 + 1.5 * IQR_0
+#finding outliers and represemting them using boxplot
+outliers_0 <- dataset_cars$YEAR[dataset_cars$YEAR < LB_0 | 
+                            dataset_cars$YEAR > UB_0]
+outliers_0
+
+```
+
+*Summary of column-3: Year*
+1.This is a numerical column
+2.This represents in which year a particular car is being manufactured
+3.There are no outliers
+
+
+
+Column -4 : Engine.Fuel.Type
+
+```{r}
+
+#Summary of the column:
+summary(dataset_cars$Engine.Fuel.Type)
+#finding how many times a word got repeated and finding frequency of the words
+table(dataset_cars$Engine.Fuel.Type)
+#Converting to lowercase:
+dataset_cars$Engine.Fuel.Type <- tolower(dataset_cars$Engine.Fuel.Type)
+#Identifying special characters in Engine.Fuel.Type column:
+options(max.print = 10000000)
+#printing all the special characters
+special_characters <- function(column){
+   a <- gsub("[a-zA-Z0-9 ]", "", column)
+  b <- unlist(strsplit(paste(a, collapse=""), ""))
+  b <- unique(b[b != ""])
+  cat(b, sep = "")
+}
+
+special_characters(dataset_cars$Engine.Fuel.Type)
+
+#removing special characters:
+dataset_cars$Engine.Fuel.Type <- gsub(" ","",dataset_cars$Engine.Fuel.Type)
+dataset_cars$Engine.Fuel.Type <- gsub("-","",dataset_cars$Engine.Fuel.Type)
+dataset_cars$Engine.Fuel.Type <- gsub("/","",dataset_cars$Engine.Fuel.Type)
+dataset_cars$Engine.Fuel.Type <- gsub("\\(","",dataset_cars$Engine.Fuel.Type)
+dataset_cars$Engine.Fuel.Type <- gsub("\\.","",dataset_cars$Engine.Fuel.Type)
+dataset_cars$Engine.Fuel.Type <- gsub("\\)","",dataset_cars$Engine.Fuel.Type)
+
+table(dataset_cars$Engine.Fuel.Type)
+```
+*Summary od Column-4:*
+1.Cleaned and preprocessed the entire column
+2.Found special characters in this column and they are [-,/,(,),.]
+3.So I removed all the special characters and unwanted spaces
+4.The data(column) is preprocessed and cleaned completely.
+
+
+
+column-5: Engine.HP
+
+```{r}
+
+summary(dataset_cars$Engine.HP)
+#validating data:
+is.numeric(dataset_cars$Engine.HP)
+#checking null values:
+sum(is.na(dataset_cars$Engine.HP))
+#Here we found Null values -> Using Mice library to fill null values
+#creating a temporary column and filling that column with 1 because mice function needs 2 columns to impute values.
+dataset_cars$Engine.HP.2 <- 1 
+#imputing values using mice function
+imputed.dataset.cars <- mice(dataset_cars[,c("Engine.HP","Engine.HP.2")],
+                             m=18,method='pmm',seed=50)
+#extracting one fully imputed data set
+completed_data_1 <- complete(imputed.dataset.cars, 1)
+#Values form completed data set are assigned back to Engine.Engine COLUMN like updating the original column
+dataset_cars$Engine.HP <- completed_data_1$Engine.HP
+#removing temporary column
+dataset_cars$Engine.HP.2 <- NULL 
+
+colnames(dataset_cars) 
+#outliers
+
+#treating outliers:
+#calculating Interquantile range
+IQR_1 <- 300 - 170
+LB_1 <- 170 - 1.5 * IQR_1
+UB_1 <- 300 + 1.5 * IQR_1
+#finding outliers and represemting them using boxplot
+outliers_1 <- dataset_cars$Engine.HP[dataset_cars$Engine.HP < LB_1 | 
+                                       dataset_cars$Engine.HP > UB_1]
+outliers_1
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound vaue
+dataset_cars$Engine.HP[dataset_cars$Engine.HP < LB_1] <- LB_1
+#HERE all values greater than upper bound value will be converted into upper bound vaue
+dataset_cars$Engine.HP[dataset_cars$Engine.HP > UB_1] <- UB_1
+#Hence outliers are treated and to represent that thing I used boxplot 
+boxplot(dataset_cars$Engine.HP,main="ENGINE.HP_Outlier detection",ylab="values",
+        xlab="Engine.HP",col="lightgreen")
+
+```
+*summary of column-5:*
+
+1.This is a complete numeric column
+2.And there are outliers present in this column
+3.I have treated outliers in this column and represented using boxplot
+4.I used IQR method to treat outliers
+5.There are 62 null values in this column
+6.I have treated the null values with mice library and mean imputation technique
+7.After this all these steps I ensured that there are no special characters and the column is properly cleaned.
+
+
+Column-6 : Engine.Cylinders
+
+```{r}
+summary(dataset_cars$Engine.Cylinders)
+#validating data:
+is.numeric(dataset_cars$Engine.Cylinder)
+#checking null values:
+sum(is.na(dataset_cars$Engine.Cylinder))
+#we have null values:
+#treating null values:
+dataset_cars$Engine.Cylinders2 <- 1 
+imputed_dataset2 <- mice(dataset_cars[, c("Engine.Cylinders", 
+                      "Engine.Cylinders2")], m = 18, method = 'pmm', seed = 50)
+
+# Extracting one imputed data set
+completed_data2 <- complete(imputed_dataset2, 1)
+
+# Updating original column with imputed values
+dataset_cars$Engine.Cylinders <- completed_data2$Engine.Cylinders
+
+# Removing the temporary column
+dataset_cars$Engine.Cylinders2 <- NULL
+
+colnames(dataset_cars)
+#outliers:
+#treating outliers:
+#calculating Interquantile range
+IQR_2 <- 6 - 4
+LB_2 <- 4 - 1.5 * IQR_2
+UB_2 <- 6 + 1.5 * IQR_2
+#finding outliers and represemting them using boxplot
+outliers_2 <- dataset_cars$Engine.Cylinders[dataset_cars$Engine.Cylinders < LB_2
+                                        | dataset_cars$Engine.Cylinders > UB_2]
+outliers_2
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound vaue
+dataset_cars$Engine.Cylinders[dataset_cars$Engine.Cylinders < LB_2] <- LB_2
+#HERE all values greater than upper bound value will be converted into upper bound vaue
+dataset_cars$Engine.Cylinders[dataset_cars$Engine.Cylinders > UB_2] <- UB_2
+#representation of boxplot:
+boxplot(dataset_cars$Engine.Cylinders,main="ENGINE.Cylinders_Outlier detection",
+        ylab="values",xlab="Engine.Cylinders",col="lightgreen")
+
+```
+*summary of column-5:*
+1.Numeric column
+2.Total null values of 25
+3.Treated null values with mice library and imputation techniques
+4.Outliers are present in this column 
+5.Removed outliers and represented with boxplot
+
+
+
+column-7: Transmission.Type
+
+```{r}
+summary(dataset_cars$Transmission.Type)
+#finding how many times a word got repeated and finding frequency of the words
+table(dataset_cars$Transmission.Type)
+#Converting to lowercase:
+dataset_cars$Transmission.Type <- tolower(dataset_cars$Transmission.Type)
+#looking for nullvalues:
+sum(is.na(dataset_cars$Transmission.Type))
+#checking for special characters:
+#Using manually created function
+special_characters(dataset_cars$Transmission.Type)
+#removing special characters from the column
+dataset_cars$Transmission.Type <- gsub(" ","",dataset_cars$Transmission.Type)
+dataset_cars$Transmission.Type <- gsub("_","",dataset_cars$Transmission.Type)
+```
+*summary of column-7:*
+1.chategorical column
+2.Only one special character found and removed that special character
+3.No null values
+
+column-8: Driven_Wheels
+
+```{r}
+summary(dataset_cars$Driven_Wheels)
+#finding how many times a word got repeated and finding frequency of the words
+table(dataset_cars$Driven_Wheels)
+#Converting to lowercase:
+dataset_cars$Driven_Wheels <- tolower(dataset_cars$Driven_Wheels)
+#looking for nullvalues:
+sum(is.na(dataset_cars$Driven_Wheels))
+#checking for special characters:
+#Using manually created function
+special_characters(dataset_cars$Driven_Wheels)
+#removing space between words:
+dataset_cars$Driven_Wheels <- gsub(" ","",dataset_cars$Driven_Wheels)
+
+```
+*summary of column-8:*
+1.categorical column
+2.No null values
+3.No special characters just unwanted space between words
+
+column-9:Number.of.Doors
+
+```{r}
+
+summary(dataset_cars$Number.of.Doors)
+#validating data:
+is.numeric(dataset_cars$Number.of.Doors)
+#checking null values:
+sum(is.na(dataset_cars$Number.of.Doors))
+#searching for special characters:
+special_characters(dataset_cars$Number.of.Doors)
+#filling null values with mice library:
+dataset_cars$Number.of.Doors2 <- 1 
+imputed_dataset3 <-mice(dataset_cars[, c("Number.of.Doors", "Number.of.Doors2")]
+                         , m = 18, method = 'pmm', seed = 50)
+
+# Extracting one imputed data set
+completed_data3 <- complete(imputed_dataset3, 1)
+
+# Updating original column with imputed values
+dataset_cars$Number.of.Doors <- completed_data3$Number.of.Doors
+
+# Removing the temporary column
+dataset_cars$Number.of.Doors2 <- NULL
+
+sum(is.na(dataset_cars$Number.of.Doors))
+
+#outliers:
+#In this particular column there's no outliers 
+boxplot(dataset_cars$Number.of.Doors,main="NO.OF doors_outlier detection",
+        ylab="NO.OF.doors",xlab="Values",col='green')
+
+```
+*Summary of column-9:*
+1.Numerical column
+2.3 null values are there
+3.Treated null values with Mice library 
+4.No outliers
+
+
+column-10 : Market.Category
+
+```{r}
+summary(dataset_cars$Market.Category)
+#finding how many times a word got repeated and finding frequency of the words
+#Converting to lowercase:
+dataset_cars$Market.Category <- tolower(dataset_cars$Market.Category)
+#looking for null values:
+sum(is.na(dataset_cars$Market.Category))
+#lookng for special characters:
+special_characters(dataset_cars$Market.Category)
+#removing all the special characters:
+dataset_cars$Market.Category <- gsub(" ","",dataset_cars$Market.Category)
+dataset_cars$Market.Category <- gsub(",","",dataset_cars$Market.Category)
+dataset_cars$Market.Category <- gsub("/","",dataset_cars$Market.Category)
+dataset_cars$Market.Category <- gsub("\\-","",dataset_cars$Market.Category)
+
+table(dataset_cars$Market.Category)
+```
+
+summary of column-10:
+1.chategorical column
+2.No null values
+3.found some special characters(,/.)
+4.So removed all the special characters and unwanted spaces
+
+
+column-11: Vehicle.Size
+
+```{r}
+
+summary(dataset_cars$Vehicle.Size)
+#finding how many times a word got repeated and finding frequency of the words
+#Converting to lowercase:
+dataset_cars$Vehicle.Size <- tolower(dataset_cars$Vehicle.Size)
+#looking for null values:
+sum(is.na(dataset_cars$Vehicle.Size))
+#lookng for special characters:
+special_characters(dataset_cars$Vehicle.Size)
+table(dataset_cars$Vehicle.Size)
+
+```
+*summary of column-11:*
+1.chategorical colum
+2.no special characters except spaces
+3.removed all the spaces and cleaned
+4.No null values
+
+
+column-12:Vehicle.Style
+
+```{r}
+
+summary(dataset_cars$Vehicle.Style)
+#finding how many times a word got repeated and finding frequency of the words
+#Converting to lowercase:
+dataset_cars$Vehicle.Style <- tolower(dataset_cars$Vehicle.Style)
+#looking for null values:
+sum(is.na(dataset_cars$Vehicle.Style))
+#lookng for special characters:
+special_characters(dataset_cars$Vehicle.Style)
+#removing space between words:
+dataset_cars$Vehicle.Style <- gsub(" ","",dataset_cars$Vehicle.Style)
+table(dataset_cars$Vehicle.Style)
+
+```
+*summary of column-12:*
+1.Categorical column
+2.no null values
+3.No special characters only spaces are there.
+
+
+column-13 : highway.MPG
+
+```{r}
+
+summary(dataset_cars$highway.MPG)
+#validating data:
+is.numeric(dataset_cars$highway.MPG)
+#checking null values:
+sum(is.na(dataset_cars$highway.MPG))
+#searching for special characters:
+special_characters(dataset_cars$highway.MPG)
+#outliers:
+#treating outliers:
+#calculating Interquantile range
+IQR_3 <- 30 - 22
+LB_3 <- 22 - 1.5 * IQR_3
+UB_3 <- 30 + 1.5 * IQR_3
+#finding outliers and represemting them using boxplot
+outliers_3 <- dataset_cars$highway.MPG[dataset_cars$highway.MPG < LB_3 | 
+                                         dataset_cars$highway.MPG > UB_3]
+outliers_3
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound vaue
+dataset_cars$highway.MPG[dataset_cars$highway.MPG < LB_3] <- LB_3
+#HERE all values greater than upper bound value will be converted into upper bound vaue
+dataset_cars$highway.MPG[dataset_cars$highway.MPG > UB_3] <- UB_3
+#Boxplot to prove that there are no outliers:
+boxplot(dataset_cars$highway.MPG,main="highway.MPG_Outlier detection",
+        ylab="values",xlab="highway.MPG",col="lightgreen")
+
+
+```
+
+*summary of column-13:*
+1.Numerical column
+2.There are no null values
+3.There are outliers
+4.Treated outliers using IQR method.
+----------------------------------------------------------------------------------------------------------
+
+column-14: city.mpg
+
+```{r}
+summary(dataset_cars$city.mpg)
+#validating data:
+is.numeric(dataset_cars$city.mpg)
+#checking null values:
+sum(is.na(dataset_cars$city.mpg))
+#searching for special characters:
+special_characters(dataset_cars$city.mpg)
+#outliers:
+#treating outliers:
+#calculating Interquantile range
+IQR_4 <- 22 - 15
+LB_4 <- 15 - 1.5 * IQR_4
+UB_4 <- 22 + 1.5 * IQR_4
+#finding outliers and represemting them using boxplot
+outliers_4 <- dataset_cars$city.mpg[dataset_cars$city.mpg < LB_4 | 
+                                      dataset_cars$city.mpg > UB_4]
+outliers_4
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound vaue
+dataset_cars$city.mpg[dataset_cars$city.mpg < LB_4] <- LB_4
+#HERE all values greater than upper bound value will be converted into upper bound vaue
+dataset_cars$city.mpg[dataset_cars$city.mpg > UB_4] <- UB_4
+#Boxplot to prove that there are no outliers:
+boxplot(dataset_cars$city.mpg,main="city.mpg_Outlier detection",ylab="values",
+        xlab="city.mpg",col="lightgreen")
+
+```
+
+*summary of column-14:*
+1.Numerical column
+2.There are no null values
+3.There are outliers
+4.Treated outliers using IQR method.
+----------------------------------------------------------------------------------------------------------------------------
+
+column-15 : Popularity
+
+```{r}
+
+summary(dataset_cars$Popularity)
+#validating data:
+is.numeric(dataset_cars$Popularity)
+#checking null values:
+sum(is.na(dataset_cars$Popularity))
+#searching for special characters:
+special_characters(dataset_cars$Popularity)
+#outliers:
+#treating outliers:
+#calculating Interquantile range
+IQR_5 <- 2009 - 549
+LB_5 <- 549 - 1.5 * IQR_5
+UB_5 <- 2009 + 1.5 * IQR_5
+#finding outliers and represemting them using boxplot
+outliers_5 <- dataset_cars$Popularity[dataset_cars$Popularity < LB_5 |
+                                      dataset_cars$Popularity > UB_5]
+outliers_5
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound vaue
+dataset_cars$Popularity[dataset_cars$Popularity < LB_5] <- LB_5
+#HERE all values greater than upper bound value will be converted into upper bound vaue
+dataset_cars$Popularity[dataset_cars$Popularity > UB_5] <- UB_5
+#Boxplot to prove that there are no outliers:
+boxplot(dataset_cars$Popularity,main="popularity_Outlier detection",ylab="values",
+        xlab="popularity",col="lightgreen")
+
+```
+*summary of column-15:*
+1.Numerical column
+2.There are no null values
+3.There are outliers
+4.Treated outliers using IQR method.
+------------------------------------------------------------------------------------------------
+
+column-16: MSRP
+
+```{r}
+
+summary(dataset_cars$MSRP)
+#validating data:
+is.numeric(dataset_cars$MSRP)
+#checking null values:
+sum(is.na(dataset_cars$MSRP))
+#searching for special characters:
+special_characters(dataset_cars$MSRP)
+#outliers:
+#treating outliers:
+#calculating Interquantile range
+IQR_6 <- 42146 - 20960
+LB_6 <- 20960 - 1.5 * IQR_6
+UB_6 <- 42146 + 1.5 * IQR_6
+#finding outliers and represemting them using boxplot
+outliers_6 <- dataset_cars$MSRP[dataset_cars$MSRP < LB_6 
+                                | dataset_cars$MSRP > UB_6]
+outliers_6
+
+#removing outliers:
+#HERE all values lesser than lower bound value will be converted into lower bound value
+dataset_cars$MSRP[dataset_cars$MSRP < LB_6] <- LB_6
+#HERE all values greater than upper bound value will be converted into upper bound value
+dataset_cars$MSRP[dataset_cars$MSRP > UB_6] <- UB_6
+#Boxplot to prove that there are no outliers:
+boxplot(dataset_cars$MSRP,main="MSRP_Outlier detection",ylab="values",
+        xlab="MSRP",col="lightgreen")
+
+```
+
+*summary of column-16:*
+1.Numerical column
+2.There are no null values
+3.There are outliers
+4.Treated outliers using IQR method.
+
+***so the whole process of cleaning is completed.All the columns of the dataset have been cleaned and preprocessed correctly ***
+
+ TASK-2:
+ 
+***Basic Statistical analysis is done in each and everystep of task-1 ***
+
+ Business understanding:
+ 
+ Column-1: MAKE
+ ->Categorical column
+ -> Highest NO.OF cars manufactured by chevrolet     
+ -> Lowest NO.OF cars manufactured by Bugatti
+ 
+ column-2:Model
+ ->categorical column
+ ->Highest NO.OF car model being sold is Beetle Convertible
+ ->There are many models which have sold less than 5.
+ 
+ column-3:Year
+ ->Numerical column
+ ->Latest car is being manufactured in 2017
+ -> Oldest car is manufactured in 1990
+ ->No null values
+ 
+ column-4:Engine.Fuel.Type
+ ->categorical column
+ ->Most NO.OF cars having their engine type as regular unleaded
+ ->very few cars are having their engine type as natural gas
+ 
+ column-5:Engine.HP
+ ->Numerical column
+ ->Mean: 249
+ ->Median: 227
+ ->Cars having 1001 HP as their engine capacity, which is maximum of all cars
+ ->Minimum car HP is 55
+ 
+ column-6:Engine.Cylinders
+ ->Numerical column
+ ->Mean: 5.86
+ ->Median: 6
+ ->Maximum no.of Cylinders for a car is 16
+ ->And there are cars with no cylinders
+ 
+ column-7:Transmission.Type
+ ->Categorical column
+ ->Maximum NO.OF cars are Automatic cars which are 6924.
+ 
+ column-8:Driven_wheels:
+ ->categorical column
+ ->Mainly most NO.OF cars are front wheel drive type cars which are 3996.
+ ->There are Less NO.OF four wheel drive  which are 1200.
+ 
+ column-9: NO.Of Doors
+ ->Numerical column
+ ->Mean:3.43
+ ->Median:4
+ ->Minimum NO.OF doors per car is 2.
+ -> Maximum NO.OF doors per car is 4.
+ 
+ 
+column-10: Market.Category
+->Numerical column
+->Mean:3.43
+->Median:4
+->Mostly Crossover is the market type of 998 cars.
+
+column-11:Vehicle.size
+->Categorical column
+->3992 cars are being compact.
+
+column-12:Vehicle.Style
+->Categorical column
+->Most cars are having sedan style structure
+
+column-13:Highway.MPG
+->Numerial column
+->mean:  26.59
+->median: 25.00
+
+column-14:city.mpg
+->Numerical column
+->mean:19.7
+->Median:18
+
+column-15:Popularity
+->Numerical column
+->Mean:1558
+->Median:1385    
+
+
+column-16:MSRP
+->Numerical column
+->mean : 40341
+->median: 29935  
+
+
+***completion of business understanding***
+
+**PIECHART**
+
+```{r}
+
+#Piechart of Driven_wheels:
+pie_dw <- table(dataset_cars$Driven_Wheels)
+pie(pie_dw, main = "Distribution of Driven_Wheels", 
+    col = rainbow(length(pie_dw)), radius = 1, cex = 0.9)
+
+```
+***bar-chart***
+
+```{r}
+
+#Building bar-graph between Make column
+#Using ggplot library for plotting
+ggplot(dataset_cars, aes(x = Number.of.Doors , y = Make  , fill = Make)) +
+  geom_bar(stat = "identity") + 
+  labs(title = "Car Makes Distribution", x = "Car Make", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1.2))
+
+```
+
+
+***histogram***
+
+
+```{r}
+#histogram of Year column:
+ggplot(dataset_cars, aes(x = Year)) +
+  geom_histogram(binwidth = 1, fill = "yellow", color = "black") +
+  labs(title = "Distribution of Year", x = "Year", y = "Frequency") +
+  theme_minimal()
+
+```
+
+
+***Scatter plot***
+
+
+```{r}
+
+# Scatterplot of highway.MPG vs city.mpg
+plot(dataset_cars$highway.MPG,dataset_cars$city.mpg, 
+     main="highway.MPG vs city.mpg",xlab="highway.MPG",ylab="city.mpg",
+     pch=19,col="blue")
+
+```
+
+*TASK - 3*
+
+Analysis on price variable:
+
+
+```{r}
+# 4A :
+#histogram of price variable:
+hist(dataset_cars$MSRP,main="histogram of Price column",xlab="PRICE",
+              ylab="FREQUENCY",col="yellow",border="black")
+``` 
+***Explanation and summary of Histogram***
+
+- From the above histogram of price(MSRP) column:
+- More than 1250 cars price ranges from 0 - 5000
+- Very few cars price ranges from 5000 - 10000
+- More than 100 cars price ranges from 10000 - 15000
+- More than 750 cars price ranges from 15000 - 20000
+- More than 1200 cars price ranges from 20000 - 25000
+- More than 1250 cars price ranges from 25000 - 30000
+- More than 1100 cars price ranges from 30000 - 35000
+- More than 750 cars price ranges from 35000 - 40000
+- More than 600 cars price ranges from 40000 - 45000
+- More than 400 cars price ranges from 45000 - 50000
+- More than 200 cars price ranges from 50000 - 55000
+- More than 100 cars price ranges from 55000 - 60000
+- More than 120 cars price ranges from 60000 - 65000
+- More than 100 cars price ranges from 65000 - 70000
+- More than 800 cars price are from 70000 and above.
+
+
+
+***Calculation of mean median variance***
+
+```{r}
+
+#calculating mean:
+mean(dataset_cars$MSRP)
+
+#median of MSRP
+median(dataset_cars$MSRP)
+
+#varience of price:
+var(dataset_cars$MSRP)
+```
+
+
+```{r}
+# 4b:
+
+#Group cars by price ranges
+price_groups <- cut(dataset_cars$MSRP, breaks = c(0, 20000, 50000, 100000, Inf),
+                    labels = c("Low(<20)", "Medium (20K-50K)", "High(50K-100K)",
+                               "Luxury(>100K)"), include.lowest = TRUE)
+group_summary <- table(price_groups)
+print(group_summary)
+```
+
+
+```{r}
+# 4c:
+
+# Boxplot for different car types
+vehicle_style_01<- names(sort(table(dataset_cars$Vehicle.Style),
+                              decreasing = TRUE))[1:5]
+vehicle_style_01<-dataset_cars[dataset_cars$Vehicle.Style %in% vehicle_style_01,]
+
+
+par(mar = c(11,5.5,2,1) +0.1)
+par(mgp = c(3, 1, 0))  
+
+boxplot(MSRP ~ Vehicle.Style, data = vehicle_style_01, 
+        main = "Price for Top 5 Vehicle Styles", xlab = " ", 
+        ylab = " ", col = "yellow", las = 2, ylim = c(0, 200000))
+mtext("Style of the vehicle", side = 1, line = 6, cex = 1)
+mtext("MSRP(Price)", side = 2, line = 4, cex = 1, las = 3)
+
+```
+
+
+
+```{r}
+#4[d] -> Correlation with MSRP (numeric variables only)
+numeric_variables <- sapply(dataset_cars, is.numeric)
+correlation_matrix <- cor(dataset_cars[, numeric_variables], use = "complete.obs")
+msrp_correlation <- correlation_matrix["MSRP", ]
+msrp_correlation <- msrp_correlation[!names(msrp_correlation) %in% "MSRP"]
+sorted_correlation <- sort(abs(msrp_correlation), decreasing = TRUE)
+top_3_correlation <- sorted_correlation[1:3]
+
+print(msrp_correlation)
+print("Top 3 correlated variables with MSRP -> Price:")
+print(top_3_correlation)
+
+```
+
+***Brand affecting the popularity and the price***
+
+```{r}
+
+#5:
+#Summarize MSRP(Price) by Make:
+brand_summary_01 <- aggregate(MSRP ~ Make, data = dataset_cars, FUN = function(x)
+  c(mean = mean(x), median = median(x)))
+brand_summary_01 <- brand_summary_01[order(-brand_summary_01$MSRP[, "mean"]), ]
+print(head(brand_summary_01, 10))
+
+# Representing MSRP column using boxplot:
+# Boxplot of MSRP(Price) for top 10 Makes:
+
+top10.makes <- brand_summary_01$Make[1:10]
+top10.makes <- dataset_cars[dataset_cars$Make %in% top10.makes, ]  
+par(mar = c(11,5.5,2,1) + 0.1)
+par(mgp = c(3, 1, 0))
+
+boxplot(MSRP ~ Make, data = top10.makes, main ="Price(MSRP) of Top 10 Makes", 
+        xlab = "", ylab = "", col= "lightgreen", las = 2, 
+        cex.names = 0.9, ylim = c(0,200000))
+
+mtext("Make", side = 1, line = 6, cex = 1)
+mtext("MSRP", side = 2, line = 4, cex = 1, las = 3)
+
+```
+
+  ***THANK YOU***
+
+
